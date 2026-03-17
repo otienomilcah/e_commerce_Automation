@@ -1,0 +1,7 @@
+<suite name="PlaywrightSuite">
+	<test name="BasicTest">
+		<classes>
+			<class name="tests.OrangeLoginTest"/>
+		</classes>
+	</test>
+</suite>
