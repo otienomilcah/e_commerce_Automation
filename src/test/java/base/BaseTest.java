@@ -1,39 +1,41 @@
 package base;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import com.microsoft.playwright.*;
+import org.testng.annotations.*;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.BrowserType.LaunchOptions;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
-
+//BaseTest handles browser setup, teardown, and provides Playwright Page object
+ 
 public class BaseTest {
-	//declare 2 methods setUp &tearDown
-	protected Playwright playwright;
-	protected Browser browser;
-	protected BrowserContext context;
-	protected Page page;
-	
-	@BeforeMethod
-	public void SetUp() {
-		playwright = Playwright.create();
-		browser = playwright.chromium().launch(
-				new LaunchOptions().setHeadless(false));
-		context = browser.newContext();
-		page= context.newPage();
-		
-		
-		
-	}
-	
-	@AfterMethod
-	public void tearDown() {
-		browser.close();
-		playwright.close();
-	}
-	
 
+    protected Playwright playwright;
+    protected Browser browser;
+    protected BrowserContext context;
+    protected Page page;
+
+    @Parameters({ "browserName" }) // cross-browser support: chromium, firefox, webkit
+    @BeforeMethod
+    public void setUp(@Optional("chromium") String browserName) {
+        playwright = Playwright.create();
+        switch (browserName.toLowerCase()) {
+            case "firefox":
+                browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(false).setSlowMo(1000));
+                break;
+            case "webkit":
+                browser = playwright.webkit().launch(new BrowserType.LaunchOptions().setHeadless(false));
+                break;
+            default:
+                browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+        }
+
+        context = browser.newContext();
+        page = context.newPage();
+        page.setDefaultTimeout(5000);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+        if (context != null) context.close();
+        if (browser != null) browser.close();
+        if (playwright != null) playwright.close();
+    }
 }
